@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>East Portland Sash - Storm Window Pricing Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c5f2d;
+            border-bottom: 2px solid #97b097;
+            padding-bottom: 10px;
+        }
+        .calculator {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #2c5f2d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #1e3f1f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f7f0;
+            border-radius: 5px;
+            border-left: 5px solid #2c5f2d;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c5f2d;
+        }
+        .notes {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        .pricing-config {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .pricing-config h3 {
+            margin-top: 0;
+        }
+        .config-input {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .config-input label {
+            width: 250px;
+        }
+    </style>
+</head>
+<body>
+    <h1>East Portland Sash</h1>
+    <h2>Oversized Storm Window Pricing Calculator</h2>
+    
+    <div class="calculator">
+        <div>
+            <label for="width">Width (inches):</label>
+            <input type="number" id="width" min="1" max="200" step="0.25" value="48">
+        </div>
+        <div>
+            <label for="height">Height (inches):</label>
+            <input type="number" id="height" min="1" max="200" step="0.25" value="60">
+        </div>
+        <button id="calculate">Calculate Price</button>
+        
+        <div id="result" class="result" style="display: none;">
+            <h3>Window Price</h3>
+            <div id="price-display" class="price">$0.00</div>
+            <div id="details"></div>
+            <div id="notes" class="notes"></div>
+        </div>
+    </div>
+    
+    <div id="pricingTable" style="display: none;">
+        <h3>Pricing Details</h3>
+        <table id="detailsTable">
+            <thead>
+                <tr>
+                    <th>Width (in)</th>
+                    <th>Height (in)</th>
+                    <th>Square Feet</th>
+                    <th>Price</th>
+                    <th>Price/SF</th>
+                    <th>Tier</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pricing-config">
+        <h3>Pricing Configuration</h3>
+        <p>Adjust these values to match your desired pricing structure:</p>
+        
+        <div class="config-input">
+            <label for="standardPrice">Standard Storm Window Price:</label>
+            <input type="number" id="standardPrice" value="960" step="10">
+        </div>
+        
+        <div class="config-input">
+            <label for="minOversizeSF">Min. Square Feet for Oversize:</label>
+            <input type="number" id="minOversizeSF" value="17" step="0.5">
+        </div>
+        
+        <div class="config-input">
+            <label for="baseOversize">Base Oversize Price:</label>
+            <input type="number" id="baseOversize" value="1200" step="10">
+        </div>
+        
+        <div class="config-input">
+            <label for="tier1Rate">Tier 1 Rate (per SF, 17-25 SF):</label>
+            <input type="number" id="tier1Rate" value="40" step="1">
+        </div>
+        
+        <div class="config-input">
+            <label for="tier2Rate">Tier 2 Rate (per SF, 25-35 SF):</label>
+            <input type="number" id="tier2Rate" value="50" step="1">
+        </div>
+        
+        <div class="config-input">
+            <label for="tier3Rate">Tier 3 Rate (per SF, 35+ SF):</label>
+            <input type="number" id="tier3Rate" value="60" step="1">
+        </div>
+        
+        <div class="config-input">
+            <label for="tier1Max">Tier 1 Max SF:</label>
+            <input type="number" id="tier1Max" value="25" step="1">
+        </div>
+        
+        <div class="config-input">
+            <label for="tier2Max">Tier 2 Max SF:</label>
+            <input type="number" id="tier2Max" value="35" step="1">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Calculate button click event
+            document.getElementById('calculate').addEventListener('click', calculatePrice);
+            
+            // Example size buttons
+            calculatePrice(); // Run calculation on initial load
+        });
+
+        function calculatePrice() {
+            // Get input values
+            const width = parseFloat(document.getElementById('width').value);
+            const height = parseFloat(document.getElementById('height').value);
+            
+            // Get pricing configuration
+            const standardPrice = parseFloat(document.getElementById('standardPrice').value);
+            const minOversizeSF = parseFloat(document.getElementById('minOversizeSF').value);
+            const baseOversizePrice = parseFloat(document.getElementById('baseOversize').value);
+            const tier1Rate = parseFloat(document.getElementById('tier1Rate').value);
+            const tier2Rate = parseFloat(document.getElementById('tier2Rate').value);
+            const tier3Rate = parseFloat(document.getElementById('tier3Rate').value);
+            const tier1Max = parseFloat(document.getElementById('tier1Max').value);
+            const tier2Max = parseFloat(document.getElementById('tier2Max').value);
+            
+            // Calculate square feet
+            const widthFeet = width / 12;
+            const heightFeet = height / 12;
+            const squareFeet = widthFeet * heightFeet;
+            const formattedSF = squareFeet.toFixed(2);
+            
+            // Calculate price
+            let price, pricePerSF, tier, notes;
+            let isOversized = false;
+            
+            if (squareFeet < minOversizeSF) {
+                // Standard storm window pricing
+                price = standardPrice;
+                pricePerSF = (price / squareFeet).toFixed(2);
+                tier = "Standard";
+                notes = "Standard storm window pricing applies.";
+            } else {
+                // Oversized window pricing
+                isOversized = true;
+                let additionalSF = 0;
+                let additionalCost = 0;
+                price = baseOversizePrice;
+                
+                if (squareFeet <= tier1Max) {
+                    // Tier 1
+                    additionalSF = squareFeet - minOversizeSF;
+                    additionalCost = additionalSF * tier1Rate;
+                    price += additionalCost;
+                    tier = `Tier 1 (${minOversizeSF}-${tier1Max} SF)`;
+                } else if (squareFeet <= tier2Max) {
+                    // Tier 2
+                    // First calculate cost up to tier1Max
+                    additionalSF = tier1Max - minOversizeSF;
+                    additionalCost = additionalSF * tier1Rate;
+                    
+                    // Then add cost for remainder at Tier 2 rate
+                    const tier2SF = squareFeet - tier1Max;
+                    additionalCost += tier2SF * tier2Rate;
+                    
+                    price += additionalCost;
+                    tier = `Tier 2 (${tier1Max}-${tier2Max} SF)`;
+                } else {
+                    // Tier 3
+                    // First calculate cost up to tier1Max
+                    additionalSF = tier1Max - minOversizeSF;
+                    additionalCost = additionalSF * tier1Rate;
+                    
+                    // Then add cost for tier1Max to tier2Max
+                    additionalCost += (tier2Max - tier1Max) * tier2Rate;
+                    
+                    // Then add cost for remainder at Tier 3 rate
+                    const tier3SF = squareFeet - tier2Max;
+                    additionalCost += tier3SF * tier3Rate;
+                    
+                    price += additionalCost;
+                    tier = `Tier 3 (${tier2Max}+ SF)`;
+                }
+                
+                price = Math.round(price);
+                pricePerSF = (price / squareFeet).toFixed(2);
+                notes = "Oversized window pricing applies.";
+            }
+            
+            // Display the results
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('pricingTable').style.display = 'block';
+            
+            document.getElementById('price-display').textContent = `$${price.toLocaleString('en-US')}`;
+            document.getElementById('details').innerHTML = `
+                <p><strong>Dimensions:</strong> ${width}" × ${height}" (${formattedSF} sq ft)</p>
+                <p><strong>Pricing Tier:</strong> ${tier}</p>
+                <p><strong>Price per Square Foot:</strong> $${pricePerSF}</p>
+            `;
+            document.getElementById('notes').textContent = notes;
+            
+            // Update table
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${width}</td>
+                <td>${height}</td>
+                <td>${formattedSF}</td>
+                <td>$${price.toLocaleString('en-US')}</td>
+                <td>$${pricePerSF}</td>
+                <td>${tier}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+    </script>
+</body>
+</html>
